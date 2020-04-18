@@ -65,27 +65,20 @@ var Shapes = (function () {
 var angle = 0;
 var squares = 10;
 var colors;
+width = 640;
+height = 480;
 function setup() {
-    createCanvas(windowWidth, windowHeight);
-    rectMode(CENTER);
-    colors = ColorHelper.getColorsArray(squares);
+    createCanvas(640, 480, WEBGL);
 }
 function draw() {
-    background(51);
-    translate((width / 2), (height / 2));
-    angle = angle + 0.01;
-    rotate(angle);
-    for (var i = 0; i < squares; i++) {
-        strokeWeight(2);
-        stroke(colors[i]);
-        noFill();
-        beginShape();
-        var points = Shapes.star(0, 0, 10 * i, 20 * i, 5);
-        for (var x = 0; x < points.length; x++) {
-            var v = points[x];
-            vertex(v.x, v.y);
-        }
-        endShape(CLOSE);
-    }
+    background(100);
+    noStroke();
+    fill(50);
+    push();
+    translate(map(mouseX, 0, width, -180, 180), 175);
+    rotateY(0);
+    rotateX(20);
+    box(60, 100, 40);
+    pop();
 }
 //# sourceMappingURL=build.js.map
