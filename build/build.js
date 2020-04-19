@@ -1,10 +1,8 @@
-var ColorHelper = (function () {
-    function ColorHelper() {
-    }
-    ColorHelper.getColorVector = function (c) {
+class ColorHelper {
+    static getColorVector(c) {
         return createVector(red(c), green(c), blue(c));
-    };
-    ColorHelper.rainbowColorBase = function () {
+    }
+    static rainbowColorBase() {
         return [
             color('red'),
             color('orange'),
@@ -14,16 +12,14 @@ var ColorHelper = (function () {
             color('indigo'),
             color('violet')
         ];
-    };
-    ColorHelper.getColorsArray = function (total, baseColorArray) {
-        var _this = this;
-        if (baseColorArray === void 0) { baseColorArray = null; }
+    }
+    static getColorsArray(total, baseColorArray = null) {
         if (baseColorArray == null) {
             baseColorArray = ColorHelper.rainbowColorBase();
         }
-        var rainbowColors = baseColorArray.map(function (x) { return _this.getColorVector(x); });
+        var rainbowColors = baseColorArray.map(x => this.getColorVector(x));
         ;
-        var colours = new Array();
+        let colours = new Array();
         for (var i = 0; i < total; i++) {
             var colorPosition = i / total;
             var scaledColorPosition = colorPosition * (rainbowColors.length - 1);
@@ -33,23 +29,20 @@ var ColorHelper = (function () {
             colours.push(color(nameColor.x, nameColor.y, nameColor.z));
         }
         return colours;
-    };
-    ColorHelper.getColorByPercentage = function (firstColor, secondColor, percentage) {
+    }
+    static getColorByPercentage(firstColor, secondColor, percentage) {
         var firstColorCopy = firstColor.copy();
         var secondColorCopy = secondColor.copy();
         var deltaColor = secondColorCopy.sub(firstColorCopy);
         var scaledDeltaColor = deltaColor.mult(percentage);
         return firstColorCopy.add(scaledDeltaColor);
-    };
-    return ColorHelper;
-}());
-var Shapes = (function () {
-    function Shapes() {
     }
-    Shapes.star = function (x, y, radius1, radius2, npoints) {
+}
+class Shapes {
+    static star(x, y, radius1, radius2, npoints) {
         var angle = TWO_PI / npoints;
         var halfAngle = angle / 2.0;
-        var points = new Array();
+        const points = new Array();
         for (var a = 0; a < TWO_PI; a += angle) {
             var sx = x + cos(a) * radius2;
             var sy = y + sin(a) * radius2;
@@ -59,28 +52,14 @@ var Shapes = (function () {
             points.push(createVector(sx, sy));
         }
         return points;
-    };
-    return Shapes;
-}());
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = function (d, b) {
-        extendStatics = Object.setPrototypeOf ||
-            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-        return extendStatics(d, b);
-    };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
+    }
+}
 width = 640;
 height = 480;
-var time = 0;
-var rate = 3;
-var Box = (function () {
-    function Box(x, y, z) {
+let time = 0;
+let rate = 3;
+class Box {
+    constructor(x, y, z) {
         this.width = 60;
         this.height = 100;
         this.depth = 40;
@@ -102,13 +81,13 @@ var Box = (function () {
         this.minZ = this.z - this.depth / 2;
         this.maxZ = this.z + this.depth / 2;
     }
-    Box.prototype.draw = function () {
+    draw() {
         push();
         translate(this.x, this.y, this.z);
         box(this.width, this.height, this.depth);
         pop();
-    };
-    Box.prototype.update = function () {
+    }
+    update() {
         this.minX = this.x - this.width / 2;
         this.maxX = this.x + this.width / 2;
         this.minY = this.y - this.height / 2;
@@ -117,101 +96,93 @@ var Box = (function () {
         this.maxZ = this.z + this.depth / 2;
         if (this.z > 100)
             this.dead = true;
-    };
-    return Box;
-}());
-var Floor = (function (_super) {
-    __extends(Floor, _super);
-    function Floor(x, y, z) {
-        var _this = _super.call(this, x, y, z) || this;
-        _this.width = 360;
-        _this.height = 3;
-        _this.depth = 200;
-        return _this;
     }
-    Floor.prototype.update = function () {
+}
+class Floor extends Box {
+    constructor(x, y, z) {
+        super(x, y, z);
+        this.width = 390;
+        this.height = 3;
+        this.depth = 200;
+    }
+    update() {
         this.z += rate / 2;
-        _super.prototype.update.call(this);
-    };
-    Floor.prototype.draw = function () {
+        super.update();
+    }
+    draw() {
         stroke(20, 67, 123);
         fill(20, 33, 89, 40);
-        _super.prototype.draw.call(this);
-    };
-    return Floor;
-}(Box));
-var Enemy = (function (_super) {
-    __extends(Enemy, _super);
-    function Enemy(x, y, z) {
-        return _super.call(this, x, y, z) || this;
+        super.draw();
     }
-    Enemy.prototype.update = function () {
+}
+class Enemy extends Box {
+    constructor(x, y, z) {
+        super(x, y, z);
+    }
+    update() {
         this.z += rate;
-        _super.prototype.update.call(this);
-    };
-    Enemy.prototype.draw = function () {
+        super.update();
+    }
+    draw() {
         this.red ? fill(250, 10, 10) : fill(50);
         stroke(200);
-        _super.prototype.draw.call(this);
-    };
-    return Enemy;
-}(Box));
-var Player = (function (_super) {
-    __extends(Player, _super);
-    function Player(x, y, z) {
-        return _super.call(this, x, y, z) || this;
+        super.draw();
     }
-    Player.prototype.draw = function () {
+}
+class Player extends Box {
+    constructor(x, y, z) {
+        super(x, y, z);
+    }
+    draw() {
         fill(200);
         stroke(50);
-        _super.prototype.draw.call(this);
-    };
-    Player.prototype.update = function () {
-        player.x = map(mouseX, 0, width, -180, 180);
-        _super.prototype.update.call(this);
-    };
-    return Player;
-}(Box));
-var player;
-var boxes = new Array();
-var floors = new Array();
-var score = 0;
-var font;
+        super.draw();
+    }
+    update() {
+        player.x = map(min(max(0, mouseX), width), 0, width, -180 + 30, 180 - 30);
+        super.update();
+    }
+}
+let player;
+let boxes = new Array();
+let floors = new Array();
+let score = 0;
+let font;
 function setup() {
     createCanvas(640, 480, WEBGL);
-    var x = 0;
-    var y = 120;
-    var z = -40;
+    let x = 0;
+    let y = 120;
+    let z = -40;
     player = new Player(x, y, z);
-    for (var i = 0; i < 6; i++) {
+    for (let i = 0; i < 6; i++) {
         floors.push(new Floor(x, 120 + player.height / 2 + 2, -i * 200));
     }
     ambientLight(50);
     directionalLight(255, 3, 0, 0.1, 0.1, 0);
-    font = loadFont('../assets/Exo-Light.otf', function (e) { return console.log('loaded'); }, function (e) { return console.log("" + e); });
-    textSize(24);
+    font = loadFont('../assets/Exo-Light.otf', (e) => console.log('loaded'), (e) => console.log(`${e}`));
+    textSize(36);
     textFont(font);
 }
 function areColliding(a, b) {
     return (a.minX <= b.maxX && a.maxX >= b.minX && a.minZ <= b.maxZ && a.maxZ >= b.minZ);
 }
-var end = false;
+let end = false;
 function draw() {
     background(200, 100, 200);
     stroke(100);
     fill(200, 200, 200);
-    floors.forEach(function (f) { return f.update(); });
-    floors.forEach(function (f) {
+    floors.forEach((f) => f.update());
+    floors.forEach((f) => {
         if (f.z >= 200) {
             f.z = (floors.length - 1) * -200;
         }
     });
-    floors.forEach(function (f) { return f.draw(); });
-    boxes.forEach(function (b) { return b.draw(); });
+    floors.forEach((f) => f.draw());
+    boxes.forEach((b) => b.draw());
     player.update();
     player.draw();
-    boxes.forEach(function (b) { return b.update(); });
-    boxes.forEach(function (b) {
+    boxes.forEach((b) => b.update());
+    boxes.forEach((b) => {
         if (areColliding(b, player)) {
             b.red = true;
             end = true;
@@ -220,23 +191,22 @@ function draw() {
             b.red = false;
         }
     });
-    boxes.forEach(function (b) {
+    boxes.forEach((b) => {
         if (b.dead)
             score++;
     });
-    boxes = boxes.filter(function (b) { return b.dead === false; });
+    boxes = boxes.filter((b) => b.dead === false);
     stroke(0);
     fill(0);
     textAlign(CENTER, CENTER);
-    text(str(score).padStart(5, 0), width / 3, -200);
+    text(str(score).padStart(5, '0'), width / 3, -200);
     time += 1;
     if (time % Math.floor((1 / rate) * 500) == 0)
-        boxes.push(new Enemy(random(-180, 180), 120, -1000));
+        boxes.push(new Enemy(random(-180 + 30, 180 - 30), 120, -1000));
     if (time % 30 == 0)
         rate *= 1.01;
     if (end) {
         text('Game Over', 0, -70);
-        image(pg, 0, 0, 640, 480);
         noLoop();
     }
 }

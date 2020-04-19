@@ -51,7 +51,7 @@ class Box {
 class Floor extends Box {
   constructor(x: number, y: number, z: number) {
     super(x, y, z);
-    this.width = 360;
+    this.width = 390;
     this.height = 3;
     this.depth = 200;
   }
@@ -94,7 +94,7 @@ class Player extends Box {
   }
 
   update() {
-    player.x = map(mouseX, 0, width, -180, 180);
+    player.x = map(min(max(0, mouseX), width), 0, width, -180 + 30, 180-30);
     super.update();
   }
 }
@@ -123,7 +123,7 @@ function setup() {
     (e) => console.log('loaded'),
     (e) => console.log(`${e}`)
   );
-  textSize(24);
+  textSize(36);
   textFont(font);
 }
 
@@ -169,17 +169,15 @@ function draw() {
   stroke(0);
   fill(0);
   textAlign(CENTER, CENTER);
-  text(str(score).padStart(5, 0), width / 3, -200);
+  text(str(score).padStart(5, '0'), width / 3, -200);
 
   time += 1;
   if (time % Math.floor((1 / rate) * 500) == 0)
-    boxes.push(new Enemy(random(-180, 180), 120, -1000));
+    boxes.push(new Enemy(random(-180+30, 180-30), 120, -1000));
 
   if (time % 30 == 0) rate *= 1.01;
-
   if (end) {
     text('Game Over', 0, -70);
-    image(pg, 0, 0, 640, 480);
     noLoop();
   }
 }
