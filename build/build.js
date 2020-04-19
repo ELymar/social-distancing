@@ -151,6 +151,81 @@ class Player extends Box {
         super.update();
     }
 }
+class Button {
+    constructor(label, x, y, width, height, clickCallback) {
+        this.label = label;
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+        this.clickCallback = clickCallback;
+        this.hovered = false;
+    }
+    isMouseOver() {
+        return (mouseX >= this.x + width / 2 &&
+            mouseX <= this.x + this.width + width / 2 &&
+            mouseY >= this.y + height / 2 &&
+            mouseY <= this.y + height / 2 + this.height);
+    }
+    handleClick() {
+        if (this.hovered) {
+            this.clickCallback();
+        }
+    }
+    update() {
+        this.hovered = this.isMouseOver();
+    }
+    draw() {
+        this.hovered ? fill(250, 250, 10) : fill(255);
+        this.hovered ? stroke(250, 250, 10) : stroke(255);
+        text(this.label, this.x + this.width / 2, this.y + this.height / 2.5);
+        noFill();
+        rect(this.x, this.y, this.width, this.height);
+    }
+}
+var IntroState;
+(function (IntroState) {
+    IntroState[IntroState["Idle"] = 0] = "Idle";
+    IntroState[IntroState["PressedPlay"] = 1] = "PressedPlay";
+})(IntroState || (IntroState = {}));
+class IntroScene {
+    constructor() {
+        this.buttons = new Array();
+        this.buttons.push(new Button('Play', -90, 0, 180, 60, () => {
+            this.state = IntroState.PressedPlay;
+        }));
+        this.player = new Player(-350, -80, -200);
+        this.enemy = new Enemy(350, -80, -200);
+        this.time = 0;
+        this.state = IntroState.Idle;
+    }
+    getState() {
+        if (this.state == IntroState.PressedPlay)
+            return 'PressedPlay';
+        return 'Idle';
+    }
+    mouseCallback(x, y) {
+        this.buttons.forEach((b) => b.handleClick());
+    }
+    update() {
+        this.player.y = 5 * sin(this.time / 12);
+        this.enemy.y = 5 * cos(this.time / 12);
+        this.time += 1;
+        this.buttons.forEach((b) => b.update());
+    }
+    draw() {
+        background(200, 100, 200);
+        stroke(100);
+        fill(200, 200, 200);
+        stroke(0);
+        fill(255);
+        textAlign(CENTER, CENTER);
+        text('Social Distancing', 0, -100);
+        this.player.draw();
+        this.enemy.draw();
+        this.buttons.forEach((b) => b.draw());
+    }
+}
 class GameScene {
     constructor() {
         this.time = 0;
@@ -166,6 +241,10 @@ class GameScene {
         directionalLight(255, 3, 0, 0.1, 0.1, 0);
         textSize(36);
     }
+    getState() {
+        return "Idle";
+    }
+    mouseCallback(x, y) { }
     update() {
         this.updateFloor();
         this.updateEnemies();
@@ -194,7 +273,6 @@ class GameScene {
         });
         this.enemies = this.enemies.filter((b) => b.dead === false);
         if (this.time % Math.floor((1 / rate) * 500) == 0) {
-            console.log('Pushing enemy');
             this.enemies.push(new Enemy(random(-180 + 30, 180 - 30), 120, -1000));
         }
     }
@@ -224,17 +302,30 @@ class GameScene {
 class Runner {
     constructor() {
         this.scenes = new Array();
-        this.scenes.push(new GameScene());
-        this.currentScene = this.scenes[0];
+        this.scenes.push(new IntroScene(), new GameScene());
+        this.currentScene = 0;
     }
     draw() {
-        this.currentScene.draw();
+        this.scenes[this.currentScene].draw();
     }
     update() {
-        this.currentScene.update();
+        this.scenes[this.currentScene].update();
+        this.handleTransitions();
+    }
+    handleTransitions() {
+        if (this.currentScene == 0 &&
+            this.scenes[this.currentScene].getState() == 'PressedPlay') {
+            this.currentScene = 1;
+        }
+    }
+    mouseCallback(x, y) {
+        this.scenes[this.currentScene].mouseCallback(x, y);
     }
 }
 let runner;
+function mousePressed() {
+    runner.mouseCallback(mouseX, mouseY);
+}
 function setup() {
     createCanvas(640, 480, WEBGL);
     const font = loadFont('../assets/Exo-Light.otf', (e) => console.log('loaded'), (e) => console.log(`${e}`));
