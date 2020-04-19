@@ -197,7 +197,7 @@ function draw() {
     });
     boxes = boxes.filter((b) => b.dead === false);
     stroke(0);
-    fill(0);
+    fill(255);
     textAlign(CENTER, CENTER);
     text(str(score).padStart(5, '0'), width / 3, -200);
     time += 1;
@@ -206,6 +206,10 @@ function draw() {
     if (time % 30 == 0)
         rate *= 1.01;
     if (end) {
+        fill(240);
+        stroke(240);
+        textSize(42);
+        strokeWeight(2);
         text('Game Over', 0, -70);
         noLoop();
     }
