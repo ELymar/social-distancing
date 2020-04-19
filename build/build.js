@@ -79,10 +79,13 @@ class Box {
         this.maxY = this.y + this.height / 2;
         this.minZ = this.z - this.depth / 2;
         this.maxZ = this.z + this.depth / 2;
+        this.red = false;
     }
     draw() {
         push();
         translate(this.x, this.y, this.z);
+        if (this.red)
+            fill(255, 10, 10);
         box(this.width, this.height, this.depth);
         pop();
     }
@@ -95,6 +98,12 @@ class Box {
         this.maxZ = this.z + this.depth / 2;
         if (this.z > 100)
             this.dead = true;
+    }
+    isCollidingWith(other) {
+        return (this.minX <= other.maxX &&
+            this.maxX >= other.minX &&
+            this.minZ <= other.maxZ &&
+            this.maxZ >= other.minZ);
     }
 }
 class Floor extends Box {
@@ -158,21 +167,25 @@ class GameScene {
         textSize(36);
     }
     update() {
+        this.updateFloor();
+        this.updateEnemies();
+        this.player.update();
         this.time += 1;
+        if (this.time % 30 == 0)
+            rate *= 1.01;
+    }
+    updateFloor() {
         this.floors.forEach((f) => f.update());
         this.floors.forEach((f) => {
             if (f.z >= 200)
                 f.z = (this.floors.length - 1) * -200 + (f.z - 200);
         });
-        this.player.update();
+    }
+    updateEnemies() {
         this.enemies.forEach((b) => b.update());
         this.enemies.forEach((b) => {
-            if (areColliding(b, this.player)) {
-                b.red = true;
+            if (this.player.isCollidingWith(b)) {
                 this.end = true;
-            }
-            else {
-                b.red = false;
             }
         });
         this.enemies.forEach((b) => {
@@ -184,8 +197,6 @@ class GameScene {
             console.log('Pushing enemy');
             this.enemies.push(new Enemy(random(-180 + 30, 180 - 30), 120, -1000));
         }
-        if (this.time % 30 == 0)
-            rate *= 1.01;
     }
     draw() {
         background(200, 100, 200);
@@ -199,6 +210,8 @@ class GameScene {
         textAlign(CENTER, CENTER);
         text(str(this.score).padStart(5, '0'), width / 3, -200);
         if (this.end) {
+            this.player.red = true;
+            this.player.draw();
             fill(240);
             stroke(240);
             textSize(42);
@@ -227,9 +240,6 @@ function setup() {
     const font = loadFont('../assets/Exo-Light.otf', (e) => console.log('loaded'), (e) => console.log(`${e}`));
     textFont(font);
     runner = new Runner();
-}
-function areColliding(a, b) {
-    return (a.minX <= b.maxX && a.maxX >= b.minX && a.minZ <= b.maxZ && a.maxZ >= b.minZ);
 }
 function draw() {
     frameRate(60);

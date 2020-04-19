@@ -1,6 +1,6 @@
 width = 640;
 height = 480;
-let rate: number = 3; 
+let rate: number = 3;
 
 class Box {
   x: number;
@@ -27,10 +27,12 @@ class Box {
     this.maxY = this.y + this.height / 2;
     this.minZ = this.z - this.depth / 2;
     this.maxZ = this.z + this.depth / 2;
+    this.red = false;
   }
   draw() {
     push();
     translate(this.x, this.y, this.z);
+    if (this.red) fill(255, 10, 10);
     box(this.width, this.height, this.depth);
     pop();
   }
@@ -42,6 +44,14 @@ class Box {
     this.minZ = this.z - this.depth / 2;
     this.maxZ = this.z + this.depth / 2;
     if (this.z > 100) this.dead = true; // Evacuate
+  }
+  isCollidingWith(other: Box): boolean {
+    return (
+      this.minX <= other.maxX &&
+      this.maxX >= other.minX &&
+      this.minZ <= other.maxZ &&
+      this.maxZ >= other.minZ
+    );
   }
 }
 
@@ -57,7 +67,6 @@ class Floor extends Box {
     super.update();
   }
   draw() {
-    //this.red ? fill(250, 10, 10): fill(50);
     stroke(20, 67, 123);
     fill(20, 33, 89, 40);
     super.draw();
@@ -126,34 +135,40 @@ class GameScene implements Scene {
     textSize(36);
   }
   update(): void {
-    this.time += 1;
 
-    this.floors.forEach((f) => f.update());
-    this.floors.forEach((f) => {
-      if (f.z >= 200) f.z = (this.floors.length - 1) * -200 + (f.z - 200); // Adjustment to correct floor
-    });
+    this.updateFloor();
+    this.updateEnemies();
     this.player.update();
-    this.enemies.forEach((b) => b.update());
-    this.enemies.forEach((b) => {
-      if (areColliding(b, this.player)) {
-        b.red = true;
-        this.end = true;
-      } else {
-        b.red = false;
-      }
-    });
-    this.enemies.forEach((b) => {
-      if (b.dead) this.score++;
-    });
 
-    this.enemies = this.enemies.filter((b) => b.dead === false);
-    if (this.time % Math.floor((1 / rate) * 500) == 0) {
-      console.log('Pushing enemy');
-      this.enemies.push(new Enemy(random(-180 + 30, 180 - 30), 120, -1000));
-    }
-    
+    this.time += 1;
     if (this.time % 30 == 0) rate *= 1.01;
   }
+    private updateFloor() {
+        this.floors.forEach((f) => f.update());
+        this.floors.forEach((f) => {
+            if (f.z >= 200)
+                f.z = (this.floors.length - 1) * -200 + (f.z - 200);
+        });
+    }
+
+    private updateEnemies() {
+        this.enemies.forEach((b) => b.update());
+        this.enemies.forEach((b) => {
+            if (this.player.isCollidingWith(b)) {
+                this.end = true;
+            }
+        });
+        this.enemies.forEach((b) => {
+            if (b.dead)
+                this.score++;
+        });
+        this.enemies = this.enemies.filter((b) => b.dead === false);
+        if (this.time % Math.floor((1 / rate) * 500) == 0) {
+            console.log('Pushing enemy');
+            this.enemies.push(new Enemy(random(-180 + 30, 180 - 30), 120, -1000));
+        }
+    }
+
   draw(): void {
     background(200, 100, 200);
     stroke(100);
@@ -166,6 +181,8 @@ class GameScene implements Scene {
     textAlign(CENTER, CENTER);
     text(str(this.score).padStart(5, '0'), width / 3, -200);
     if (this.end) {
+      this.player.red = true; 
+      this.player.draw(); 
       fill(240);
       stroke(240);
       textSize(42);
@@ -204,13 +221,6 @@ function setup() {
   );
   textFont(font);
   runner = new Runner();
-}
-
-// TODO move into box
-function areColliding(a: Box, b: Box): boolean {
-  return (
-    a.minX <= b.maxX && a.maxX >= b.minX && a.minZ <= b.maxZ && a.maxZ >= b.minZ
-  );
 }
 
 function draw() {
