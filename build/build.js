@@ -151,6 +151,14 @@ class Player extends Box {
         super.update();
     }
 }
+class Scene {
+    constructor(callback) {
+        this.setState = callback;
+    }
+    update() { }
+    draw() { }
+    mouseCallback(x, y) { }
+}
 class Button {
     constructor(label, x, y, width, height, clickCallback) {
         this.label = label;
@@ -178,31 +186,23 @@ class Button {
     draw() {
         this.hovered ? fill(250, 250, 10) : fill(255);
         this.hovered ? stroke(250, 250, 10) : stroke(255);
+        textSize(36);
         text(this.label, this.x + this.width / 2, this.y + this.height / 2.5);
         noFill();
         rect(this.x, this.y, this.width, this.height);
     }
 }
-var IntroState;
-(function (IntroState) {
-    IntroState[IntroState["Idle"] = 0] = "Idle";
-    IntroState[IntroState["PressedPlay"] = 1] = "PressedPlay";
-})(IntroState || (IntroState = {}));
-class IntroScene {
-    constructor() {
+class IntroScene extends Scene {
+    constructor(callback) {
+        super(callback);
         this.buttons = new Array();
         this.buttons.push(new Button('Play', -90, 0, 180, 60, () => {
-            this.state = IntroState.PressedPlay;
+            console.log("Play state");
+            this.setState(GameState.PressedPlay);
         }));
         this.player = new Player(-350, -80, -200);
         this.enemy = new Enemy(350, -80, -200);
         this.time = 0;
-        this.state = IntroState.Idle;
-    }
-    getState() {
-        if (this.state == IntroState.PressedPlay)
-            return 'PressedPlay';
-        return 'Idle';
     }
     mouseCallback(x, y) {
         this.buttons.forEach((b) => b.handleClick());
@@ -226,8 +226,9 @@ class IntroScene {
         this.buttons.forEach((b) => b.draw());
     }
 }
-class GameScene {
-    constructor() {
+class GameScene extends Scene {
+    constructor(callback) {
+        super(callback);
         this.time = 0;
         this.end = false;
         this.player = new Player(0, 120, -40);
@@ -237,6 +238,7 @@ class GameScene {
             this.floors.push(new Floor(0, 120 + this.player.height / 2 + 2, -i * 200));
         }
         this.score = 0;
+        this.buttons = new Array();
         ambientLight(50);
         directionalLight(255, 3, 0, 0.1, 0.1, 0);
         textSize(36);
@@ -244,8 +246,16 @@ class GameScene {
     getState() {
         return 'Idle';
     }
-    mouseCallback(x, y) { }
+    mouseCallback(x, y) {
+        if (this.end) {
+            this.buttons.forEach(b => b.handleClick());
+        }
+    }
     update() {
+        if (this.end) {
+            this.buttons.forEach(b => b.update());
+            return;
+        }
         this.updateFloor();
         this.updateEnemies();
         this.player.update();
@@ -254,6 +264,8 @@ class GameScene {
             rate *= 1.01;
     }
     updateFloor() {
+        if (this.end)
+            return;
         this.floors.forEach((f) => f.update());
         this.floors.forEach((f) => {
             if (f.z >= 200)
@@ -261,10 +273,13 @@ class GameScene {
         });
     }
     updateEnemies() {
+        if (this.end)
+            return;
         this.enemies.forEach((b) => b.update());
         this.enemies.forEach((b) => {
             if (this.player.isCollidingWith(b)) {
                 this.end = true;
+                this.setState(GameState.GameOver);
             }
         });
         this.enemies.forEach((b) => {
@@ -274,6 +289,14 @@ class GameScene {
         this.enemies = this.enemies.filter((b) => b.dead === false);
         if (this.time % Math.floor((1 / rate) * 500) == 0) {
             this.enemies.push(new Enemy(random(-180 + 30, 180 - 30), 120, -1000));
+        }
+        if (this.end && this.buttons.length == 0) {
+            this.buttons.push(new Button('Restart', -90, 0, 180, 60, () => {
+                this.setState(GameState.PressedPlay);
+            }));
+            this.buttons.push(new Button('Quit', -90, 80, 180, 60, () => {
+                this.setState(GameState.PressedQuit);
+            }));
         }
     }
     draw() {
@@ -287,22 +310,33 @@ class GameScene {
         fill(255);
         textAlign(CENTER, CENTER);
         text(str(this.score).padStart(5, '0'), width / 3, -200);
+        this.buttons.forEach(b => b.draw());
         if (this.end) {
             this.player.red = true;
             this.player.draw();
             fill(240);
             stroke(240);
             textSize(42);
-            strokeWeight(2);
             text('Game Over', 0, -70);
-            noLoop();
         }
     }
 }
+var GameState;
+(function (GameState) {
+    GameState[GameState["Intro"] = 0] = "Intro";
+    GameState[GameState["PressedPlay"] = 1] = "PressedPlay";
+    GameState[GameState["Round"] = 2] = "Round";
+    GameState[GameState["GameOver"] = 3] = "GameOver";
+    GameState[GameState["PressedQuit"] = 4] = "PressedQuit";
+})(GameState || (GameState = {}));
 class Runner {
     constructor() {
+        this.setState = (state) => {
+            this.state = state;
+        };
+        this.state = GameState.Intro;
         this.scenes = new Array();
-        this.scenes.push(new IntroScene(), new GameScene());
+        this.scenes.push(new IntroScene(this.setState), new GameScene(this.setState));
         this.currentScene = 0;
     }
     draw() {
@@ -313,9 +347,23 @@ class Runner {
         this.handleTransitions();
     }
     handleTransitions() {
-        if (this.currentScene == 0 &&
-            this.scenes[this.currentScene].getState() == 'PressedPlay') {
-            this.currentScene = 1;
+        switch (this.state) {
+            case GameState.Intro:
+                this.currentScene = 0;
+                break;
+            case GameState.PressedPlay:
+                this.scenes[1] = new GameScene(this.setState);
+                this.state = GameState.Round;
+                break;
+            case GameState.Round:
+                this.currentScene = 1;
+                break;
+            case GameState.GameOver:
+                this.currentScene = 1;
+                break;
+            case GameState.PressedQuit:
+                this.currentScene = 0;
+                break;
         }
     }
     mouseCallback(x, y) {
