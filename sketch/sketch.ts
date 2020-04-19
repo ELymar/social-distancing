@@ -142,7 +142,7 @@ function draw() {
   floors.forEach((f) => f.update());
   floors.forEach((f) => {
     if (f.z >= 200) {
-      f.z = (floors.length - 1) * -200;
+      f.z = (floors.length - 1) * -200 + (f.z-200); // Adjustment to correct floor
     }
   });
   floors.forEach((f) => f.draw());
