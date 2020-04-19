@@ -1,59 +1,3 @@
-class ColorHelper {
-    static getColorVector(c) {
-        return createVector(red(c), green(c), blue(c));
-    }
-    static rainbowColorBase() {
-        return [
-            color('red'),
-            color('orange'),
-            color('yellow'),
-            color('green'),
-            color(38, 58, 150),
-            color('indigo'),
-            color('violet')
-        ];
-    }
-    static getColorsArray(total, baseColorArray = null) {
-        if (baseColorArray == null) {
-            baseColorArray = ColorHelper.rainbowColorBase();
-        }
-        var rainbowColors = baseColorArray.map(x => this.getColorVector(x));
-        ;
-        let colours = new Array();
-        for (var i = 0; i < total; i++) {
-            var colorPosition = i / total;
-            var scaledColorPosition = colorPosition * (rainbowColors.length - 1);
-            var colorIndex = Math.floor(scaledColorPosition);
-            var colorPercentage = scaledColorPosition - colorIndex;
-            var nameColor = this.getColorByPercentage(rainbowColors[colorIndex], rainbowColors[colorIndex + 1], colorPercentage);
-            colours.push(color(nameColor.x, nameColor.y, nameColor.z));
-        }
-        return colours;
-    }
-    static getColorByPercentage(firstColor, secondColor, percentage) {
-        var firstColorCopy = firstColor.copy();
-        var secondColorCopy = secondColor.copy();
-        var deltaColor = secondColorCopy.sub(firstColorCopy);
-        var scaledDeltaColor = deltaColor.mult(percentage);
-        return firstColorCopy.add(scaledDeltaColor);
-    }
-}
-class Shapes {
-    static star(x, y, radius1, radius2, npoints) {
-        var angle = TWO_PI / npoints;
-        var halfAngle = angle / 2.0;
-        const points = new Array();
-        for (var a = 0; a < TWO_PI; a += angle) {
-            var sx = x + cos(a) * radius2;
-            var sy = y + sin(a) * radius2;
-            points.push(createVector(sx, sy));
-            sx = x + cos(a + halfAngle) * radius1;
-            sy = y + sin(a + halfAngle) * radius1;
-            points.push(createVector(sx, sy));
-        }
-        return points;
-    }
-}
 width = 640;
 height = 480;
 let rate = 3;
@@ -196,9 +140,13 @@ class IntroScene extends Scene {
     constructor(callback) {
         super(callback);
         this.buttons = new Array();
+        this.showingAbout = false;
         this.buttons.push(new Button('Play', -90, 0, 180, 60, () => {
-            console.log("Play state");
+            console.log('Play state');
             this.setState(GameState.PressedPlay);
+        }));
+        this.buttons.push(new Button('About', -90, 70, 180, 60, () => {
+            this.showingAbout = !this.showingAbout;
         }));
         this.player = new Player(-350, -80, -200);
         this.enemy = new Enemy(350, -80, -200);
@@ -220,7 +168,13 @@ class IntroScene extends Scene {
         stroke(0);
         fill(255);
         textAlign(CENTER, CENTER);
-        text('Social Distancing', 0, -100);
+        textSize(48);
+        text('Social Distancing', 0, -120);
+        if (this.showingAbout) {
+            textSize(16);
+            text('Avoid others to prevent infection. See how long you can last!', 0, 180);
+            text('A game by Eugene Lymar and Kristen Burke', 0, 200);
+        }
         this.player.draw();
         this.enemy.draw();
         this.buttons.forEach((b) => b.draw());
@@ -248,12 +202,12 @@ class GameScene extends Scene {
     }
     mouseCallback(x, y) {
         if (this.end) {
-            this.buttons.forEach(b => b.handleClick());
+            this.buttons.forEach((b) => b.handleClick());
         }
     }
     update() {
         if (this.end) {
-            this.buttons.forEach(b => b.update());
+            this.buttons.forEach((b) => b.update());
             return;
         }
         this.updateFloor();
@@ -310,7 +264,7 @@ class GameScene extends Scene {
         fill(255);
         textAlign(CENTER, CENTER);
         text(str(this.score).padStart(5, '0'), width / 3, -200);
-        this.buttons.forEach(b => b.draw());
+        this.buttons.forEach((b) => b.draw());
         if (this.end) {
             this.player.red = true;
             this.player.draw();

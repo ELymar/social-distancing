@@ -164,7 +164,7 @@ class Button {
     this.hovered ? fill(250, 250, 10) : fill(255);
     this.hovered ? stroke(250, 250, 10) : stroke(255);
 
-    textSize(36); 
+    textSize(36);
     text(this.label, this.x + this.width / 2, this.y + this.height / 2.5);
     noFill();
     rect(this.x, this.y, this.width, this.height);
@@ -176,13 +176,20 @@ class IntroScene extends Scene {
   time: number;
   enemy: Enemy;
   buttons: Array<Button>;
+  showingAbout: boolean; 
   constructor(callback: (state: GameState) => void) {
-    super(callback); 
+    super(callback);
     this.buttons = new Array<Button>();
+    this.showingAbout = false; 
     this.buttons.push(
       new Button('Play', -90, 0, 180, 60, () => {
-        console.log("Play state")
+        console.log('Play state');
         this.setState(GameState.PressedPlay);
+      })
+    );
+    this.buttons.push(
+      new Button('About', -90, 70, 180, 60, () => {
+        this.showingAbout = !this.showingAbout; 
       })
     );
     this.player = new Player(-350, -80, -200);
@@ -205,10 +212,17 @@ class IntroScene extends Scene {
     stroke(0);
     fill(255);
     textAlign(CENTER, CENTER);
-    text('Social Distancing', 0, -100);
+    textSize(48)
+    text('Social Distancing', 0, -120);
+    if(this.showingAbout){
+      textSize(16);
+      text('Avoid others to prevent infection. See how long you can last!', 0, 180)
+      text('A game by Eugene Lymar and Kristen Burke', 0, 200)
+    }
     this.player.draw();
     this.enemy.draw();
     this.buttons.forEach((b) => b.draw());
+  
   }
 }
 
@@ -220,10 +234,9 @@ class GameScene extends Scene {
   end: boolean; // Is this the end?
   time: number; // Current game time
   buttons: Array<Button>;
-  
 
   constructor(callback: (state: GameState) => void) {
-    super(callback)
+    super(callback);
     this.time = 0;
     this.end = false;
     this.player = new Player(0, 120, -40);
@@ -236,7 +249,7 @@ class GameScene extends Scene {
       );
     }
     this.score = 0;
-    this.buttons = new Array<Button>(); 
+    this.buttons = new Array<Button>();
     ambientLight(50);
     directionalLight(255, 3, 0, 0.1, 0.1, 0);
     textSize(36);
@@ -246,14 +259,14 @@ class GameScene extends Scene {
     return 'Idle';
   }
   mouseCallback(x: number, y: number): void {
-    if (this.end){
-      this.buttons.forEach(b => b.handleClick()); 
+    if (this.end) {
+      this.buttons.forEach((b) => b.handleClick());
     }
   }
   update(): void {
     if (this.end) {
-      this.buttons.forEach(b => b.update())
-      return; 
+      this.buttons.forEach((b) => b.update());
+      return;
     }
     this.updateFloor();
     this.updateEnemies();
@@ -313,7 +326,7 @@ class GameScene extends Scene {
     fill(255);
     textAlign(CENTER, CENTER);
     text(str(this.score).padStart(5, '0'), width / 3, -200);
-    this.buttons.forEach(b => b.draw()); 
+    this.buttons.forEach((b) => b.draw());
     if (this.end) {
       this.player.red = true;
       this.player.draw();
@@ -340,7 +353,10 @@ class Runner {
   constructor() {
     this.state = GameState.Intro;
     this.scenes = new Array<Scene>();
-    this.scenes.push(new IntroScene(this.setState), new GameScene(this.setState));
+    this.scenes.push(
+      new IntroScene(this.setState),
+      new GameScene(this.setState)
+    );
     this.currentScene = 0;
   }
 
@@ -359,7 +375,7 @@ class Runner {
         break;
       case GameState.PressedPlay:
         this.scenes[1] = new GameScene(this.setState);
-        rate = 3; 
+        rate = 3;
         this.state = GameState.Round;
         break;
       case GameState.Round:
@@ -376,7 +392,7 @@ class Runner {
 
   setState = (state: GameState) => {
     this.state = state;
-  }
+  };
 
   mouseCallback(x: number, y: number) {
     this.scenes[this.currentScene].mouseCallback(x, y);
