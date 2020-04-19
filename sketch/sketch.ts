@@ -180,7 +180,7 @@ class IntroScene implements Scene {
     this.buttons = new Array<Button>();
     this.buttons.push(
       new Button('Play', -90, 0, 180, 60, () => {
-        this.state = IntroState.PressedPlay; 
+        this.state = IntroState.PressedPlay;
       })
     );
     this.player = new Player(-350, -80, -200);
@@ -240,7 +240,7 @@ class GameScene implements Scene {
     textSize(36);
   }
   getState(): string {
-    return "Idle";
+    return 'Idle';
   }
   mouseCallback(x: number, y: number): void {}
   update(): void {

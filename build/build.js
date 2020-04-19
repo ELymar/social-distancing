@@ -242,7 +242,7 @@ class GameScene {
         textSize(36);
     }
     getState() {
-        return "Idle";
+        return 'Idle';
     }
     mouseCallback(x, y) { }
     update() {
