@@ -332,13 +332,6 @@ enum GameState {
   GameOver,
   PressedQuit,
 }
-/*
-Intro -> Intro
-PressedPlay -> Round
-Round -> Round
-GameOver -> GameOver
-PressedQuit -> Intro
-*/
 
 class Runner {
   scenes: Scene[];
@@ -366,6 +359,7 @@ class Runner {
         break;
       case GameState.PressedPlay:
         this.scenes[1] = new GameScene(this.setState);
+        rate = 3; 
         this.state = GameState.Round;
         break;
       case GameState.Round:

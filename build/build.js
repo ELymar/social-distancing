@@ -353,6 +353,7 @@ class Runner {
                 break;
             case GameState.PressedPlay:
                 this.scenes[1] = new GameScene(this.setState);
+                rate = 3;
                 this.state = GameState.Round;
                 break;
             case GameState.Round:
