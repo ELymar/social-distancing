@@ -290,12 +290,12 @@ class GameScene extends Scene {
 
     if (this.end && this.buttons.length == 0) {
       this.buttons.push(
-        new Button('Restart', -90, 0, 180, 60, () => {
+        new Button('Restart', -182, -80, 180, 60, () => {
           this.setState(GameState.PressedPlay);
         })
       );
       this.buttons.push(
-        new Button('Quit', -90, 80, 180, 60, () => {
+        new Button('Quit', -2, -80, 180, 60, () => {
           this.setState(GameState.PressedQuit);
         })
       );
@@ -320,7 +320,7 @@ class GameScene extends Scene {
       fill(240);
       stroke(240);
       textSize(42);
-      text('Game Over', 0, -70);
+      text('Game Over', 0, -120);
     }
   }
 }
