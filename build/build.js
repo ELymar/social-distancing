@@ -56,7 +56,6 @@ class Shapes {
 }
 width = 640;
 height = 480;
-let time = 0;
 let rate = 3;
 class Box {
     constructor(x, y, z) {
@@ -139,79 +138,102 @@ class Player extends Box {
         super.draw();
     }
     update() {
-        player.x = map(min(max(0, mouseX), width), 0, width, -180 + 30, 180 - 30);
+        this.x = map(min(max(0, mouseX), width), 0, width, -180 + 30, 180 - 30);
         super.update();
     }
 }
-let player;
-let boxes = new Array();
-let floors = new Array();
-let score = 0;
-let font;
+class GameScene {
+    constructor() {
+        this.time = 0;
+        this.end = false;
+        this.player = new Player(0, 120, -40);
+        this.enemies = new Array();
+        this.floors = new Array();
+        for (let i = 0; i < 6; i++) {
+            this.floors.push(new Floor(0, 120 + this.player.height / 2 + 2, -i * 200));
+        }
+        this.score = 0;
+        ambientLight(50);
+        directionalLight(255, 3, 0, 0.1, 0.1, 0);
+        textSize(36);
+    }
+    update() {
+        this.time += 1;
+        this.floors.forEach((f) => f.update());
+        this.floors.forEach((f) => {
+            if (f.z >= 200)
+                f.z = (this.floors.length - 1) * -200 + (f.z - 200);
+        });
+        this.player.update();
+        this.enemies.forEach((b) => b.update());
+        this.enemies.forEach((b) => {
+            if (areColliding(b, this.player)) {
+                b.red = true;
+                this.end = true;
+            }
+            else {
+                b.red = false;
+            }
+        });
+        this.enemies.forEach((b) => {
+            if (b.dead)
+                this.score++;
+        });
+        this.enemies = this.enemies.filter((b) => b.dead === false);
+        if (this.time % Math.floor((1 / rate) * 500) == 0) {
+            console.log('Pushing enemy');
+            this.enemies.push(new Enemy(random(-180 + 30, 180 - 30), 120, -1000));
+        }
+        if (this.time % 30 == 0)
+            rate *= 1.01;
+    }
+    draw() {
+        background(200, 100, 200);
+        stroke(100);
+        fill(200, 200, 200);
+        this.floors.forEach((f) => f.draw());
+        this.enemies.forEach((b) => b.draw());
+        this.player.draw();
+        stroke(0);
+        fill(255);
+        textAlign(CENTER, CENTER);
+        text(str(this.score).padStart(5, '0'), width / 3, -200);
+        if (this.end) {
+            fill(240);
+            stroke(240);
+            textSize(42);
+            strokeWeight(2);
+            text('Game Over', 0, -70);
+            noLoop();
+        }
+    }
+}
+class Runner {
+    constructor() {
+        this.scenes = new Array();
+        this.scenes.push(new GameScene());
+        this.currentScene = this.scenes[0];
+    }
+    draw() {
+        this.currentScene.draw();
+    }
+    update() {
+        this.currentScene.update();
+    }
+}
+let runner;
 function setup() {
     createCanvas(640, 480, WEBGL);
-    let x = 0;
-    let y = 120;
-    let z = -40;
-    player = new Player(x, y, z);
-    for (let i = 0; i < 6; i++) {
-        floors.push(new Floor(x, 120 + player.height / 2 + 2, -i * 200));
-    }
-    ambientLight(50);
-    directionalLight(255, 3, 0, 0.1, 0.1, 0);
-    font = loadFont('../assets/Exo-Light.otf', (e) => console.log('loaded'), (e) => console.log(`${e}`));
-    textSize(36);
+    const font = loadFont('../assets/Exo-Light.otf', (e) => console.log('loaded'), (e) => console.log(`${e}`));
     textFont(font);
+    runner = new Runner();
 }
 function areColliding(a, b) {
     return (a.minX <= b.maxX && a.maxX >= b.minX && a.minZ <= b.maxZ && a.maxZ >= b.minZ);
 }
-let end = false;
 function draw() {
-    background(200, 100, 200);
-    stroke(100);
-    fill(200, 200, 200);
-    floors.forEach((f) => f.update());
-    floors.forEach((f) => {
-        if (f.z >= 200) {
-            f.z = (floors.length - 1) * -200 + (f.z - 200);
-        }
-    });
-    floors.forEach((f) => f.draw());
-    boxes.forEach((b) => b.draw());
-    player.update();
-    player.draw();
-    boxes.forEach((b) => b.update());
-    boxes.forEach((b) => {
-        if (areColliding(b, player)) {
-            b.red = true;
-            end = true;
-        }
-        else {
-            b.red = false;
-        }
-    });
-    boxes.forEach((b) => {
-        if (b.dead)
-            score++;
-    });
-    boxes = boxes.filter((b) => b.dead === false);
-    stroke(0);
-    fill(255);
-    textAlign(CENTER, CENTER);
-    text(str(score).padStart(5, '0'), width / 3, -200);
-    time += 1;
-    if (time % Math.floor((1 / rate) * 500) == 0)
-        boxes.push(new Enemy(random(-180 + 30, 180 - 30), 120, -1000));
-    if (time % 30 == 0)
-        rate *= 1.01;
-    if (end) {
-        fill(240);
-        stroke(240);
-        textSize(42);
-        strokeWeight(2);
-        text('Game Over', 0, -70);
-        noLoop();
-    }
+    frameRate(60);
+    runner.update();
+    runner.draw();
 }
 //# sourceMappingURL=build.js.map
