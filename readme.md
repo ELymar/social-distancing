@@ -8,10 +8,11 @@ Available here: https://elymar.itch.io/social-distancing
 Use mouse or trackpad to control the traveler.
 
 # How to build
-`git clone https://github.com/ELymar/social-distancing.git`
-`cd social-distancing`
-`npm install`
-`npm start`
-
+```
+git clone https://github.com/ELymar/social-distancing.git
+cd social-distancing
+npm install
+npm start
+```
 
 
