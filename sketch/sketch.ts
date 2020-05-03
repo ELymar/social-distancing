@@ -1,6 +1,11 @@
 width = 640;
 height = 480;
-let rate: number = 3;
+let initRate: number = 10; 
+let rate: number = 5;
+
+const resetRate = () => {
+  rate = initRate; 
+}
 
 class Box {
   x: number;
@@ -274,7 +279,8 @@ class GameScene extends Scene {
     this.player.update();
 
     this.time += 1;
-    if (this.time % 30 == 0) rate *= 1.01;
+    //if (this.time % 30 == 0) rate *= 1.0001;
+    rate = 1.3 * Math.log2(this.time / 300 + 1) + 10; 
   }
   private updateFloor() {
     if (this.end) return;
@@ -326,6 +332,7 @@ class GameScene extends Scene {
     fill(255);
     textAlign(CENTER, CENTER);
     text(str(this.score).padStart(5, '0'), width / 3, -200);
+    //text(str(Math.ceil(rate * 100)/100), width/-3, -200 )
     this.buttons.forEach((b) => b.draw());
     if (this.end) {
       this.player.red = true;
@@ -348,7 +355,7 @@ enum GameState {
 
 class Runner {
   scenes: Scene[];
-  currentScene: number;
+  currentSceneIndex: number;
   state: GameState;
   constructor() {
     this.state = GameState.Intro;
@@ -357,35 +364,35 @@ class Runner {
       new IntroScene(this.setState),
       new GameScene(this.setState)
     );
-    this.currentScene = 0;
+    this.currentSceneIndex = 0;
   }
 
   draw(): void {
-    this.scenes[this.currentScene].draw();
+    this.scenes[this.currentSceneIndex].draw();
   }
   update() {
-    this.scenes[this.currentScene].update();
+    this.scenes[this.currentSceneIndex].update();
     this.handleTransitions();
   }
 
   handleTransitions() {
     switch (this.state) {
       case GameState.Intro:
-        this.currentScene = 0;
+        this.currentSceneIndex = 0;
         break;
       case GameState.PressedPlay:
         this.scenes[1] = new GameScene(this.setState);
-        rate = 3;
+        resetRate();
         this.state = GameState.Round;
         break;
       case GameState.Round:
-        this.currentScene = 1;
+        this.currentSceneIndex = 1;
         break;
       case GameState.GameOver:
-        this.currentScene = 1;
+        this.currentSceneIndex = 1;
         break;
       case GameState.PressedQuit:
-        this.currentScene = 0;
+        this.currentSceneIndex = 0;
         break;
     }
   }
@@ -395,7 +402,7 @@ class Runner {
   };
 
   mouseCallback(x: number, y: number) {
-    this.scenes[this.currentScene].mouseCallback(x, y);
+    this.scenes[this.currentSceneIndex].mouseCallback(x, y);
   }
 }
 
